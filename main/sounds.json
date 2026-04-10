@@ -1,0 +1,5 @@
+{
+  "_comment": "Map chord names to sound file paths. Missing or invalid paths fall back to the metronome click track.",
+  "C": "sounds/c.wav",
+  "G": "sounds/g.wav"
+}

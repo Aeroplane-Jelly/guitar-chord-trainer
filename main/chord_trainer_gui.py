@@ -87,8 +87,23 @@ SOUND_SETS = {
     'Click':      ('/System/Library/Sounds/Morse.aiff', '/System/Library/Sounds/Ping.aiff'),
     'Bell':       ('/System/Library/Sounds/Glass.aiff', '/System/Library/Sounds/Hero.aiff'),
 }
-PROGRESS_FILE = os.path.expanduser('~/guitar_trainer_progress.json')
-HAS_AFPLAY    = shutil.which('afplay') is not None
+PROGRESS_FILE  = os.path.expanduser('~/guitar_trainer_progress.json')
+SOUNDS_MAP_FILE = os.path.join(os.path.dirname(__file__), 'sounds.json')
+HAS_AFPLAY     = shutil.which('afplay') is not None
+
+
+def _load_custom_sounds() -> dict:
+    """Load sounds.json if present; return validated {chord: path} mapping."""
+    if not os.path.exists(SOUNDS_MAP_FILE):
+        return {}
+    try:
+        with open(SOUNDS_MAP_FILE) as f:
+            raw = json.load(f)
+        return {k: v for k, v in raw.items() if isinstance(v, str) and os.path.exists(v)}
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+CUSTOM_SOUNDS = _load_custom_sounds()
 
 # ── Colours ──────────────────────────────────────────────────────────────────
 BG_CANVAS   = '#2b2b2b'
@@ -107,9 +122,10 @@ def set_volume(level: float):
     global _volume
     _volume = max(0.0, min(1.0, level))
 
-def play_sound(path):
+def play_sound(path, chord=None):
+    resolved = CUSTOM_SOUNDS.get(chord, path) if chord else path
     if HAS_AFPLAY:
-        subprocess.Popen(['afplay', '-v', str(round(_volume, 2)), path],
+        subprocess.Popen(['afplay', '-v', str(round(_volume, 2)), resolved],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
         sys.stdout.write('\a'); sys.stdout.flush()
@@ -643,6 +659,8 @@ class ChordTrainerApp(ctk.CTk):
         if not self.running:
             return
         if beat == 1:
+            if self._next_chord in CUSTOM_SOUNDS:
+                play_sound(CUSTOM_SOUNDS[self._next_chord], chord=self._next_chord)
             self.chord_label.configure(text=self._next_chord,
                                        font=ctk.CTkFont(size=72, weight="bold"))
             self.numeral_label.configure(text=f"({self._next_numeral})")
