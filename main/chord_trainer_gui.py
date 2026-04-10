@@ -299,7 +299,9 @@ class ChordTrainerApp(ctk.CTk):
 
         self._build_ui()
         self.update_idletasks()
-        self.geometry(f"{self.winfo_reqwidth()}x{self.winfo_reqheight()}")
+        w = self.winfo_reqwidth()
+        h = min(self.winfo_reqheight(), self.winfo_screenheight() - 80)
+        self.geometry(f"{w}x{h}")
 
     # ── UI ────────────────────────────────────────────────────────────────────
 
