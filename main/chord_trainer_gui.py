@@ -100,10 +100,16 @@ STR_COLOUR  = '#777777'
 NUT_COLOUR  = '#cccccc'
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Volume ────────────────────────────────────────────────────────────────────
+_volume = 1.0
+
+def set_volume(level: float):
+    global _volume
+    _volume = max(0.0, min(1.0, level))
+
 def play_sound(path):
     if HAS_AFPLAY:
-        subprocess.Popen(['afplay', path],
+        subprocess.Popen(['afplay', '-v', str(round(_volume, 2)), path],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
         sys.stdout.write('\a'); sys.stdout.flush()
@@ -368,6 +374,21 @@ class ChordTrainerApp(ctk.CTk):
                           command=self._on_sound_change
                           ).grid(row=1, column=2, padx=8, pady=(0, 12))
 
+        # Volume row
+        sess.grid_columnconfigure((0, 1, 2), weight=1)
+        ctk.CTkLabel(sess, text="Volume",
+                     font=ctk.CTkFont(size=12)).grid(row=2, column=0, columnspan=3, pady=(4, 2))
+        vol_frame = ctk.CTkFrame(sess, fg_color="transparent")
+        vol_frame.grid(row=3, column=0, columnspan=3, pady=(0, 12))
+        ctk.CTkButton(vol_frame, text="−", width=32, height=28,
+                      font=ctk.CTkFont(size=16), corner_radius=8,
+                      command=self._volume_down).pack(side="left", padx=4)
+        self.volume_label = ctk.CTkLabel(vol_frame, text="100%",
+                                         font=ctk.CTkFont(size=13, weight="bold"), width=48)
+        self.volume_label.pack(side="left", padx=4)
+        ctk.CTkButton(vol_frame, text="+", width=32, height=28,
+                      font=ctk.CTkFont(size=16), corner_radius=8,
+                      command=self._volume_up).pack(side="left", padx=4)
 
 # ── Custom chord selection (hidden until difficulty = Custom) ──
         self.custom_frame = ctk.CTkFrame(self, corner_radius=14)
@@ -474,6 +495,14 @@ class ChordTrainerApp(ctk.CTk):
             if self.running and self.metronome:
                 self.metronome.update_bpm(bpm)
                 self.session_bpms.append(bpm)
+
+    def _volume_up(self):
+        set_volume(_volume + 0.1)
+        self.volume_label.configure(text=f"{round(_volume * 100)}%")
+
+    def _volume_down(self):
+        set_volume(_volume - 0.1)
+        self.volume_label.configure(text=f"{round(_volume * 100)}%")
 
     def _toggle(self):
         if self.running:
