@@ -270,7 +270,6 @@ class ChordTrainerApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Guitar Chord Trainer")
-        self.geometry("520x980")
         self.resizable(False, False)
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -288,10 +287,13 @@ class ChordTrainerApp(ctk.CTk):
         self.session_chord_counts = {}
         self._timer_job         = None
         self._countdown_n       = 0
-        self.tap_tempo    = TapTempo()
-        self._custom_vars = {}   # chord name -> tk.BooleanVar
+        self.tap_tempo         = TapTempo()
+        self._custom_vars      = {}   # chord name -> tk.BooleanVar
+        self._custom_checks    = {}   # chord name -> CTkCheckBox
 
         self._build_ui()
+        self.update_idletasks()
+        self.geometry(f"{self.winfo_reqwidth()}x{self.winfo_reqheight()}")
 
     # ── UI ────────────────────────────────────────────────────────────────────
 
@@ -420,6 +422,7 @@ class ChordTrainerApp(ctk.CTk):
         for widget in self.custom_frame.winfo_children():
             widget.destroy()
         self._custom_vars.clear()
+        self._custom_checks.clear()
 
         key    = self.key_var.get()
         chords = KEYS[key]
@@ -429,11 +432,11 @@ class ChordTrainerApp(ctk.CTk):
                      ).grid(row=0, column=0, columnspan=7, pady=(10, 4))
 
         for i, chord in enumerate(chords):
-            var = tk.BooleanVar(value=True)
-            self._custom_vars[chord] = var
-            ctk.CTkCheckBox(self.custom_frame, text=chord, variable=var,
-                            font=ctk.CTkFont(size=12), width=70
-                            ).grid(row=1, column=i, padx=6, pady=(0, 10))
+            cb = ctk.CTkCheckBox(self.custom_frame, text=chord,
+                                 font=ctk.CTkFont(size=12), width=70)
+            cb.select()
+            cb.grid(row=1, column=i, padx=6, pady=(0, 10))
+            self._custom_checks[chord] = cb
 
     # ── Callbacks ─────────────────────────────────────────────────────────────
 
@@ -575,11 +578,11 @@ class ChordTrainerApp(ctk.CTk):
                     if c in OPEN_CHORDS or c in BARRE_CHORDS]
         elif diff == 'Custom':
             idxs = [i for i, c in enumerate(chords)
-                    if self._custom_vars.get(c, tk.BooleanVar(value=True)).get()]
+                    if self._custom_checks.get(c) and self._custom_checks[c].get()]
         else:
             idxs = list(range(len(chords)))
 
-        return idxs if len(idxs) >= 2 else list(range(len(chords)))
+        return idxs if idxs else list(range(len(chords)))
 
     def _pick_next_chord(self):
         key       = self.key_var.get()
