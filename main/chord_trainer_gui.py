@@ -292,7 +292,7 @@ class ChordTrainerApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Guitar Chord Trainer")
-        self.resizable(False, False)
+        self.resizable(True, True)
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
@@ -314,23 +314,28 @@ class ChordTrainerApp(ctk.CTk):
         self._custom_checks    = {}   # chord name -> CTkCheckBox
 
         self._build_ui()
-        self.update_idletasks()
-        w = self.winfo_reqwidth()
-        h = min(self.winfo_reqheight(), self.winfo_screenheight() - 80)
-        self.geometry(f"{w}x{h}")
+        self.after(0, lambda: self.state('zoomed') if sys.platform == 'win32'
+                   else self.attributes('-zoomed', True) if sys.platform.startswith('linux')
+                   else self.attributes('-fullscreen', True))
 
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        scroll.grid(row=0, column=0, sticky="nsew")
+        scroll.grid_columnconfigure(0, weight=1)
+        self._scroll = scroll
 
         # Title
-        ctk.CTkLabel(self, text="Guitar Chord Trainer",
+        ctk.CTkLabel(scroll, text="Guitar Chord Trainer",
                      font=ctk.CTkFont(size=22, weight="bold")
                      ).grid(row=0, column=0, pady=(18, 4))
 
         # ── Settings card ──
-        settings = ctk.CTkFrame(self, corner_radius=14)
+        settings = ctk.CTkFrame(scroll, corner_radius=14)
         settings.grid(row=1, column=0, padx=24, pady=6, sticky="ew")
         settings.grid_columnconfigure((0, 1, 2), weight=1)
 
@@ -365,7 +370,7 @@ class ChordTrainerApp(ctk.CTk):
                                ).grid(row=1, column=2, padx=12, pady=(0, 12))
 
         # ── Session options card ──
-        sess = ctk.CTkFrame(self, corner_radius=14)
+        sess = ctk.CTkFrame(scroll, corner_radius=14)
         sess.grid(row=2, column=0, padx=24, pady=6, sticky="ew")
         sess.grid_columnconfigure((0, 1, 2), weight=1)
 
@@ -409,11 +414,11 @@ class ChordTrainerApp(ctk.CTk):
                       command=self._volume_up).pack(side="left", padx=4)
 
 # ── Custom chord selection (hidden until difficulty = Custom) ──
-        self.custom_frame = ctk.CTkFrame(self, corner_radius=14)
+        self.custom_frame = ctk.CTkFrame(scroll, corner_radius=14)
         self._build_custom_frame()
 
         # ── Chord display card ──
-        chord_card = ctk.CTkFrame(self, corner_radius=14)
+        chord_card = ctk.CTkFrame(scroll, corner_radius=14)
         chord_card.grid(row=4, column=0, padx=24, pady=6, sticky="ew")
         chord_card.grid_columnconfigure(0, weight=1)
 
@@ -437,7 +442,7 @@ class ChordTrainerApp(ctk.CTk):
         self.history_label.grid(row=3, column=0, pady=(0, 12))
 
         # ── Diagram card ──
-        diagram_card = ctk.CTkFrame(self, corner_radius=14)
+        diagram_card = ctk.CTkFrame(scroll, corner_radius=14)
         diagram_card.grid(row=5, column=0, padx=24, pady=6, sticky="ew")
         diagram_card.grid_columnconfigure(0, weight=1)
 
@@ -446,12 +451,12 @@ class ChordTrainerApp(ctk.CTk):
         self.diagram.draw(None)
 
         # ── Beat dots ──
-        self.dot_label = ctk.CTkLabel(self, text="",
+        self.dot_label = ctk.CTkLabel(scroll, text="",
                                       font=ctk.CTkFont(size=26))
         self.dot_label.grid(row=6, column=0, pady=4)
 
         # ── Start / Stop ──
-        self.start_btn = ctk.CTkButton(self, text="Start",
+        self.start_btn = ctk.CTkButton(scroll, text="Start",
                                        font=ctk.CTkFont(size=16, weight="bold"),
                                        height=48, corner_radius=12,
                                        command=self._toggle)
