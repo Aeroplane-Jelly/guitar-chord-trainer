@@ -91,13 +91,13 @@ PROGRESS_FILE = os.path.expanduser('~/guitar_trainer_progress.json')
 HAS_AFPLAY    = shutil.which('afplay') is not None
 
 # ── Colours ──────────────────────────────────────────────────────────────────
-BG_CANVAS   = '#2b2b2b'
-DOT_COLOUR  = '#4a9eff'
+BG_CANVAS   = '#1a1025'
+DOT_COLOUR  = '#a78bfa'
 MUTE_COLOUR = '#cc4444'
-OPEN_COLOUR = '#aaaaaa'
-FRET_COLOUR = '#555555'
-STR_COLOUR  = '#777777'
-NUT_COLOUR  = '#cccccc'
+OPEN_COLOUR = '#c4b5fd'
+FRET_COLOUR = '#4a3a6b'
+STR_COLOUR  = '#6b5a8a'
+NUT_COLOUR  = '#c4b5fd'
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -273,7 +273,9 @@ class ChordTrainerApp(ctk.CTk):
         self.geometry("520x980")
         self.resizable(False, False)
         ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
+        ctk.set_default_color_theme(
+            os.path.join(os.path.dirname(__file__), "purple_theme.json")
+        )
 
         self.metronome          = None
         self.running            = False
@@ -509,7 +511,7 @@ class ChordTrainerApp(ctk.CTk):
         self.session_chord_counts = {}
 
         self.start_btn.configure(text="Stop",
-                                 fg_color="#c0392b", hover_color="#96281b")
+                                 fg_color="#7f1d1d", hover_color="#991b1b")
 
         self.metronome = Metronome(self.bpm_var.get(), self.beats_var.get(),
                                    self._on_beat, self.sound_var.get())
@@ -545,8 +547,8 @@ class ChordTrainerApp(ctk.CTk):
             })
 
         self.start_btn.configure(text="Start",
-                                 fg_color=("#3B8ED0", "#1F6AA5"),
-                                 hover_color=("#36719F", "#144870"))
+                                 fg_color=("#7C3AED", "#5B21B6"),
+                                 hover_color=("#6D28D9", "#4C1D95"))
         self.chord_label.configure(text="—",
                                    font=ctk.CTkFont(size=72, weight="bold"))
         self.numeral_label.configure(text="")
